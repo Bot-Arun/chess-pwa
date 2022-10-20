@@ -3,7 +3,7 @@ import { Game } from "js-chess-engine";
 
 const game = new Game();
 
-function App() {
+function Chess() {
   const [boardArray2, setBoardArray2] = useState({});
   // eslint-disable-next-line no-unused-vars
   let keys = Object.keys(boardArray2);
@@ -50,7 +50,7 @@ function App() {
 
   useEffect(() => {
     setCurrBoard();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [possibleMoves, setPossibleMoves] = useState([]);
@@ -82,7 +82,7 @@ function App() {
     <div
       className=" h-screen text-center -z-50 "
       style={{
-        backgroundImage: 'url("./images/Background.jpg")',
+        backgroundImage: "url('./images/Background/Background.jpg')",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
         backgroundSize: "100% 100%",
@@ -92,7 +92,7 @@ function App() {
         <div className="basis-1/4 left-bar"></div>
         <div className="basis-1/2 w-fit px-20   -z-0 ">
           <div
-            className=" w-[50rem]  pl-[12%] pr-[13%] pt-[5.9rem] py-[15.4rem] "
+            className=" w-[50rem] pl-[12%] pr-[13%] pt-[5.9rem] py-[15.4rem] "
             style={{
               backgroundImage: 'url("./images/chessboard-02.png")',
               backgroundRepeat: "no-repeat",
@@ -105,7 +105,7 @@ function App() {
                 boardArray2={boardArray2}
                 possibleMoves={possibleMoves}
                 tempFn={tempFn}
-              ></Board>
+              />
             </div>
           </div>
         </div>
@@ -114,7 +114,6 @@ function App() {
     </div>
   );
 }
-
 
 const Board = ({ boardArray2, tempFn, possibleMoves }) => {
   let x = [8, 7, 6, 5, 4, 3, 2, 1];
@@ -136,7 +135,7 @@ const Board = ({ boardArray2, tempFn, possibleMoves }) => {
             <img
               key={s + p}
               draggable={false}
-              src={"./images/new_images/" + boardArray2[s + p] + ".png"}
+              src={"./images/coins(reshaped)/" + boardArray2[s + p] + ".png"}
               className="z-10 select-none absolute drag pointer-events-none "
               alt="coin"
             />
@@ -152,4 +151,5 @@ const Board = ({ boardArray2, tempFn, possibleMoves }) => {
   });
   return <>{X}</>;
 };
-export default App;
+
+export default Chess;
