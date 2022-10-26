@@ -1,14 +1,51 @@
-
-
 import { useState, useEffect } from "react";
 import { Game } from "js-chess-engine";
 import './App.css'
+import  io  from "socket.io-client";
 
-const game = new Game();
+const game1 = new Game();
+
+const socket = io("http://localhost:3001")
 
 function App() {
+  const [game, setGame] = useState(game1);
+  const [room, setRoom] = useState(243);
   const [boardArray2, setBoardArray2] = useState({});
-  const [difficulty, setDifficulty] = useState(0)
+  const [difficulty, setDifficulty] = useState(0);
+
+  useEffect(() => {
+    joinRoom();
+    setCurrBoard();
+  }, []);
+  
+  useEffect(() => {
+    socket.on("receive_board",(data)=>{
+      console.log(data.game);
+      setGame(new Game(data.game.board.configuration))
+      setCurrBoard();
+      // setBoardArray2({ ...data.boardArray2 });
+      console.log("In receive board use Effect");
+      console.log(data.boardArray2);
+    })
+  }, [socket])
+
+  const sendMessage = () => {
+    console.log("In send Message function");
+    socket.emit("send_message", { game,boardArray2, room });
+  }; 
+
+  // useEffect(() => {
+  //   sendMessage();
+  // },[boardArray2])
+
+
+  const joinRoom = () => {
+    if (room !== "") {
+      socket.emit("join_room", room);
+    }
+  };
+
+
   let keys = Object.keys(boardArray2);
   let board = game.exportJson().pieces;
 
@@ -48,12 +85,8 @@ function App() {
     }
     setBoardArray2({ ...boardArray });
     keys = Object.keys(boardArray2);
-    console.log(board);
+    // console.log(board);
   }
-
-  useEffect(() => {
-    setCurrBoard();
-  }, []);
 
   const [possibleMoves, setPossibleMoves] = useState([]);
   const [fromPosition, setfromPosition] = useState("");
@@ -63,12 +96,14 @@ function App() {
       console.log('possilbe Moves',possibleMoves);
       console.log(fromPosition + " " + x);
       game.move(fromPosition, x);
-      console.log(game.exportJson().pieces);
+      // console.log(game.exportJson().pieces);
       setCurrBoard();
       console.log("Done");
       setfromPosition("");
-      game.aiMove(difficulty);
-      setCurrBoard();
+      // game.aiMove(difficulty);
+      // sendMessage(boardArray2);
+      // setCurrBoard();
+      sendMessage();
       setPossibleMoves([...[]]);
     } else if (possibleMoves.length > 0) {
       setPossibleMoves([...[]]);
