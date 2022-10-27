@@ -12,26 +12,12 @@ function App() {
   const [room, setRoom] = useState(243);
   const [boardArray2, setBoardArray2] = useState({});
   const [difficulty, setDifficulty] = useState(0);
+  const [counter, setCounter] = useState(0)
+  const [counter2, setCounter2] = useState(0)
 
-  useEffect(() => {
-    joinRoom();
-    setCurrBoard();
-  }, []);
-  
-  useEffect(() => {
-    socket.on("receive_board",(data)=>{
-      console.log(data.game);
-      setGame(new Game(data.game.board.configuration))
-      setCurrBoard();
-      // setBoardArray2({ ...data.boardArray2 });
-      console.log("In receive board use Effect");
-      console.log(data.boardArray2);
-    })
-  }, [socket])
 
-  const sendMessage = () => {
-    console.log("In send Message function");
-    socket.emit("send_message", { game,boardArray2, room });
+  const sendMessage = async () => {
+    await socket.emit("send_message", { game,boardArray2, room });
   }; 
 
   // useEffect(() => {
@@ -49,7 +35,7 @@ function App() {
   let keys = Object.keys(boardArray2);
   let board = game.exportJson().pieces;
 
-  function setCurrBoard() {
+  async function setCurrBoard() {
     let boardArray = {};
     let xaxis = {
       1: "A",
@@ -73,7 +59,7 @@ function App() {
     };
 
     for (let i = 1; i <= 8; i++) {
-      board = game.exportJson().pieces;
+      board = await game.exportJson().pieces;
       for (let j = 1; j <= 8; j++) {
         let piece = board[xaxis[i] + yaxis[j]];
         if (piece) {
@@ -83,9 +69,9 @@ function App() {
         }
       }
     }
-    setBoardArray2({ ...boardArray });
-    keys = Object.keys(boardArray2);
-    // console.log(board);
+    await setBoardArray2(await { ...boardArray })
+
+    keys =await Object.keys(boardArray2)
   }
 
   const [possibleMoves, setPossibleMoves] = useState([]);
@@ -93,28 +79,46 @@ function App() {
 
   const tempFn = (x, y) => {
     if (possibleMoves.length > 0 && possibleMoves.includes(x)) {
-      console.log('possilbe Moves',possibleMoves);
-      console.log(fromPosition + " " + x);
       game.move(fromPosition, x);
-      // console.log(game.exportJson().pieces);
       setCurrBoard();
-      console.log("Done");
-      setfromPosition("");
+      setCounter(counter+1);
+      setfromPosition("")
       // game.aiMove(difficulty);
       // sendMessage(boardArray2);
       // setCurrBoard();
-      sendMessage();
+      // sendMessage();
       setPossibleMoves([...[]]);
     } else if (possibleMoves.length > 0) {
       setPossibleMoves([...[]]);
     } 
     else {
-      console.log(x + " " + y);
       setPossibleMoves([...game.moves(x)]);
       setfromPosition(x);
-      console.log('possilbe Moves',possibleMoves);
     }
   };
+
+  useEffect(() => {
+    joinRoom();
+    // setCurrBoard();
+  }, []);
+
+  useEffect(() => {
+    setCurrBoard();
+  }, [counter2]);
+
+  useEffect(() => {
+    sendMessage()
+    setCurrBoard();
+  }, [counter])
+  
+  useEffect(() => {
+    socket.on("receive_board",async(data)=>{
+      setGame(await new Game(data.game.board.configuration))
+      setCounter2(counter2+1)
+   
+  })
+  }, [socket])
+
 
 
   return (  
@@ -154,9 +158,7 @@ function App() {
 }
 const Board = ({boardArray2,tempFn,possibleMoves}) => {
   let x = [8 , 7 ,6 ,5 ,4 ,3 ,2 ,1];
-  let y = ["A","B","C","D","E","F","G","H"]
-  console.log('board arr',boardArray2)
-  var X = x.map( p =>  {
+  let y = ["A","B","C","D","E","F","G","H"]  var X = x.map( p =>  {
     var Y = y.map(s => {
       var str = 'b';
       if ((boardArray2[s +p])?.toUpperCase() ===boardArray2[s +p]) {
