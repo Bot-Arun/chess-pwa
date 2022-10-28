@@ -11,7 +11,7 @@ const Home = ({setDifficulty}) => {
     <div
       className="h-screen bg-cover bg-center flex justify-center items-center"
       style={{
-        backgroundImage: "url('./images/Background/peakpx2.jpg')",
+        backgroundImage: "url('./images/peakpx-2.jpg')",
       }}
     >
       <motion.button

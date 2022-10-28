@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import WinModal from "./WinModal";
 import LoseModal from "./LoseModal";
 import { Game } from "js-chess-engine";
+import "../App.css";
 
 const game = new Game();
 
@@ -51,6 +52,7 @@ function Chess({ difficulty }) {
         }
       }
     }
+
     setBoardArray2({ ...boardArray });
     keys = Object.keys(boardArray2);
     // console.log(board);
@@ -58,7 +60,7 @@ function Chess({ difficulty }) {
 
   const [isFinished, setIsFinished] = useState(false);
   const [checkmate, setCheckmate] = useState(false);
-  // const [currTurn, setCurrTurn] = useState("white");
+  const [currTurn, setCurrTurn] = useState("white");
   useEffect(() => {
     // console.log(difficulty);
     setCurrBoard();
@@ -91,7 +93,7 @@ function Chess({ difficulty }) {
     // console.log(A[A.length - 1].configuration);
     setIsFinished(B.isFinished);
     setCheckmate(B.checkMate);
-    // setCurrTurn(B.turn);
+    setCurrTurn(B.turn);
   };
 
   const tempFn = async (x, coin) => {
@@ -106,9 +108,18 @@ function Chess({ difficulty }) {
       getLastMove();
       // console.log("Done");
       setfromPosition("");
+      
 
       await delay(1500);
-      // setCurrTurn("black");
+      setCurrTurn("black");
+      console.log(
+        "Before Ai -- Check-Mate : " +
+          checkmate +
+          "\nIs-Finished : " +
+          isFinished +
+          "\nCurrent Turn: " +
+          currTurn
+      );
       game.aiMove(difficulty);
       setCurrBoard();
       getLastMove();
@@ -117,18 +128,26 @@ function Chess({ difficulty }) {
       setPossibleMoves([...[]]);
     } else {
       //x,y
-
+      console.log(x + " " + coin);
+      console.log(
+        "Check-Mate : " +
+          checkmate +
+          "\nIs-Finished : " +
+          isFinished +
+          "\nCurrent Turn: " +
+          currTurn
+      );
       setPossibleMoves([...game.moves(x)]);
       setfromPosition(x);
-      console.log("possilbe Moves", possibleMoves);
+      //   console.log("Possible Moves", possibleMoves);
     }
   };
 
   return (
     <div
-      className=" h-screen text-center -z-50 "
+      className=" h-screen -z-50 "
       style={{
-        backgroundImage: "url('./images/Background/Background.jpg')",
+        backgroundImage: 'url("./images/Background.jpg")',
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
         backgroundSize: "100% 100%",
@@ -148,7 +167,7 @@ function Chess({ difficulty }) {
         {/* CHESSBOARD */}
         <div className="basis-1/2 w-fit px-20 -z-0 ">
           <div
-            className=" w-[50rem] pl-[12%] pr-[13%] pt-[5.9rem] py-[15.4rem] "
+            className=" w-[34rem]  h-[37rem]  pl-[12%] pr-[13%] pt-[4rem] pb-[10.2rem] "
             style={{
               backgroundImage: 'url("./images/chessboard-02.png")',
               backgroundRepeat: "no-repeat",
@@ -233,7 +252,7 @@ function Chess({ difficulty }) {
         exitBeforeEnter={true}
         onExitComplete={() => null}
       >
-        {checkmate && <LoseModal modalopen={modalOpen} handleClose={close} />}
+        {checkmate && <WinModal modalopen={modalOpen} handleClose={close} />}
       </AnimatePresence>
     </div>
   );
