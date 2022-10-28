@@ -1,8 +1,11 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Modal from "./Modal";
 
-const Home = () => {
-  const navigate = useNavigate();
+const Home = ({setDifficulty}) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const open = () => setModalOpen(true);
+  const close = () => setModalOpen(false);
 
   return (
     <div
@@ -11,15 +14,28 @@ const Home = () => {
         backgroundImage: "url('./images/Background/peakpx2.jpg')",
       }}
     >
-      <button
-        onClick={() => navigate("/game")}
-        className="relative top-[25%] hover:scale-105 duration-500"
+      <motion.button
+        // drag
+        onClick={() => {
+          modalOpen ? close() : open();
+        }}
+        className="relative top-[25%]"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
       >
         <img src={"./images/2-02.png"} alt="tag" />
         <p className="z-10 relative bottom-[5.6rem] font-black text-[30px]">
           New Game
         </p>
-      </button>
+      </motion.button>
+
+      <AnimatePresence
+        initial={false}
+        exitBeforeEnter={true}
+        onExitComplete={() => null}
+      >
+        {modalOpen && <Modal modalopen={modalOpen} handleClose={close} setDifficulty={setDifficulty}/>}
+      </AnimatePresence>
     </div>
   );
 };
