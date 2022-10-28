@@ -106,7 +106,6 @@ function Chess({ difficulty }) {
       getLastMove();
       // console.log("Done");
       setfromPosition("");
-      
 
       await delay(1500);
       // setCurrTurn("black");
@@ -118,7 +117,7 @@ function Chess({ difficulty }) {
       setPossibleMoves([...[]]);
     } else {
       //x,y
-    
+
       setPossibleMoves([...game.moves(x)]);
       setfromPosition(x);
       console.log("possilbe Moves", possibleMoves);
@@ -252,6 +251,10 @@ const Board = ({ boardArray2, tempFn, possibleMoves }) => {
 
   var X = x.map((p) => {
     var Y = y.map((s) => {
+      var str = "b";
+      if (boardArray2[s + p]?.toUpperCase() === boardArray2[s + p]) {
+        str = "w";
+      }
       return (
         <div
           key={s}
