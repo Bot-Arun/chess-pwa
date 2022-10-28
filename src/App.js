@@ -1,29 +1,31 @@
 import { useState, useEffect } from "react";
 import { Game } from "js-chess-engine";
-import './App.css'
-import  io  from "socket.io-client";
+import "./App.css";
+import io from "socket.io-client";
 
-const game1 = new Game();
+// const game1 = new Game();
 
-const socket = io("http://localhost:3001")
+const socket = io("http://localhost:3001");
 
 function App() {
-  const [game, setGame] = useState(game1);
-  const [room, setRoom] = useState(243);
+  const [game, setGame] = useState(new Game());
+  const [room, setRoom] = useState(455);
   const [boardArray2, setBoardArray2] = useState({});
   const [difficulty, setDifficulty] = useState(0);
-  const [counter, setCounter] = useState(0)
-  const [counter2, setCounter2] = useState(0)
-
-
+  const [counter, setCounter] = useState(0);
+  const [counter2, setCounter2] = useState(0);
   const sendMessage = async () => {
-    await socket.emit("send_message", { game,boardArray2, room });
-  }; 
+    const data = {
+      room: room,
+      game: await game,
+      boardArray2: await boardArray2
+    };
+    await socket.emit("send_message", data);
+  };
 
   // useEffect(() => {
   //   sendMessage();
   // },[boardArray2])
-
 
   const joinRoom = () => {
     if (room !== "") {
@@ -31,9 +33,8 @@ function App() {
     }
   };
 
-
   let keys = Object.keys(boardArray2);
-  let board = game.exportJson().pieces;
+  let board =  game.exportJson().pieces;
 
   async function setCurrBoard() {
     let boardArray = {};
@@ -60,6 +61,7 @@ function App() {
 
     for (let i = 1; i <= 8; i++) {
       board = await game.exportJson().pieces;
+      console.log(board)
       for (let j = 1; j <= 8; j++) {
         let piece = board[xaxis[i] + yaxis[j]];
         if (piece) {
@@ -69,20 +71,19 @@ function App() {
         }
       }
     }
-    await setBoardArray2(await { ...boardArray })
+    await setBoardArray2(await { ...boardArray });
 
-    keys =await Object.keys(boardArray2)
+    keys = await Object.keys(boardArray2);
   }
 
   const [possibleMoves, setPossibleMoves] = useState([]);
   const [fromPosition, setfromPosition] = useState("");
 
-  const tempFn = (x, y) => {
+  const tempFn = async (x, y) => {
     if (possibleMoves.length > 0 && possibleMoves.includes(x)) {
       game.move(fromPosition, x);
-      setCurrBoard();
-      setCounter(counter+1);
-      setfromPosition("")
+      await setCurrBoard();
+      setfromPosition("");
       // game.aiMove(difficulty);
       // sendMessage(boardArray2);
       // setCurrBoard();
@@ -90,93 +91,151 @@ function App() {
       setPossibleMoves([...[]]);
     } else if (possibleMoves.length > 0) {
       setPossibleMoves([...[]]);
-    } 
-    else {
+    } else {
       setPossibleMoves([...game.moves(x)]);
       setfromPosition(x);
     }
+    setCounter(counter + 1);
+    setCounter2(counter2 + 1);
+
   };
 
   useEffect(() => {
     joinRoom();
-    // setCurrBoard();
+    setCurrBoard();
   }, []);
 
   useEffect(() => {
-    setCurrBoard();
+    async function temp() {
+      await setCurrBoard();
+    }
+    temp();
   }, [counter2]);
 
+  useEffect( () => {
+    async function temp(){
+      await sendMessage();
+      await setCurrBoard();
+    }
+    temp();
+  }, [counter]);
+
   useEffect(() => {
-    sendMessage()
-    setCurrBoard();
-  }, [counter])
-  
-  useEffect(() => {
-    socket.on("receive_board",async(data)=>{
-      setGame(await new Game(data.game.board.configuration))
-      setCounter2(counter2+1)
-   
-  })
-  }, [socket])
+    socket.on("receive_board", async (data) => {
+      setGame(await new Game(data.game.board.configuration));
+      setCounter2(counter2 + 1);
+    });
+  }, [socket]);
 
-
-
-  return (  
-    <div className=" h-screen -z-50 " style={{backgroundImage:'url("./images/Background.jpg")',backgroundRepeat:'no-repeat',backgroundPosition:'center',backgroundSize:'100% 100%'}} >
-      <div className='flex h-full'>
-         <div className='basis-1/4 left-bar' >
-         </div>
-         <div className='basis-1/2 w-fit px-20   -z-0 '  >
-          <div className=' w-[34rem]  h-[37rem]  pl-[12%] pr-[13%] pt-[4rem] pb-[10.2rem] ' style={{  backgroundImage:'url("./images/chessboard-02.png")',backgroundRepeat:'no-repeat', backgroundPosition:'center' , backgroundSize:'100% 100%'}} >
-            <div className='bg-rd-400 h-[100%]   flex-col  '  >
-                <Board boardArray2={boardArray2} possibleMoves={possibleMoves} tempFn={tempFn} ></Board>
+  return (
+    <div
+      className=" h-screen -z-50 "
+      style={{
+        backgroundImage: 'url("./images/Background.jpg")',
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        backgroundSize: "100% 100%",
+      }}
+    >
+      <div className="flex h-full">
+        <div className="basis-1/4 left-bar"></div>
+        <div className="basis-1/2 w-fit px-20   -z-0 ">
+          <div
+            className=" w-[34rem]  h-[37rem]  pl-[12%] pr-[13%] pt-[4rem] pb-[10.2rem] "
+            style={{
+              backgroundImage: 'url("./images/chessboard-02.png")',
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
+              backgroundSize: "100% 100%",
+            }}
+          >
+            <div className="bg-rd-400 h-[100%]   flex-col  ">
+              <Board
+                boardArray2={boardArray2}
+                possibleMoves={possibleMoves}
+                tempFn={tempFn}
+              ></Board>
             </div>
           </div>
-         </div>
-         <div className='my-6  h-[60px] basis-1/2 right-bar' >
-         <div className="flex flex-col justify-center items-start h-[40vh]" style={{background:'transparent url("./images/difficulty-level.png") no-repeat center center',backgroundSize:"cover"}}>
-          <label className="control control-radio">
-            Easy
-            <input onChange={()=>setDifficulty(0)} type="radio" name="radio" />
-            <div className="control_indicator"></div>
-          </label>
-          <label className="control control-radio">
+        </div>
+        <div className="my-6  h-[60px] basis-1/2 right-bar">
+          <div
+            className="flex flex-col justify-center items-start h-[40vh]"
+            style={{
+              background:
+                'transparent url("./images/difficulty-level.png") no-repeat center center',
+              backgroundSize: "cover",
+            }}
+          >
+            <label className="control control-radio">
+              Easy
+              <input
+                onChange={() => setDifficulty(0)}
+                type="radio"
+                name="radio"
+              />
+              <div className="control_indicator"></div>
+            </label>
+            <label className="control control-radio">
               Medium
-              <input onChange={()=>setDifficulty(1)} type="radio" name="radio" />
+              <input
+                onChange={() => setDifficulty(1)}
+                type="radio"
+                name="radio"
+              />
               <div className="control_indicator"></div>
-          </label>
-          <label className="control control-radio">
+            </label>
+            <label className="control control-radio">
               Hard
-              <input onChange={()=>setDifficulty(2)} type="radio" name="radio" />
+              <input
+                onChange={() => setDifficulty(2)}
+                type="radio"
+                name="radio"
+              />
               <div className="control_indicator"></div>
-          </label>
-         </div>
-         </div>
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-const Board = ({boardArray2,tempFn,possibleMoves}) => {
-  let x = [8 , 7 ,6 ,5 ,4 ,3 ,2 ,1];
-  let y = ["A","B","C","D","E","F","G","H"]  var X = x.map( p =>  {
-    var Y = y.map(s => {
-      var str = 'b';
-      if ((boardArray2[s +p])?.toUpperCase() ===boardArray2[s +p]) {
-        str = 'w';
+const Board = ({ boardArray2, tempFn, possibleMoves }) => {
+  let x = [8, 7, 6, 5, 4, 3, 2, 1];
+  let y = ["A", "B", "C", "D", "E", "F", "G", "H"];
+  var X = x.map((p) => {
+    var Y = y.map((s) => {
+      var str = "b";
+      if (boardArray2[s + p]?.toUpperCase() === boardArray2[s + p]) {
+        str = "w";
       }
       return (
-      <div  key={s} draggable={false} className={'flex-auto select-none relative z-20  m-[1px] '+ (possibleMoves.includes(s+p) && "bg-[#6f69]")} onClick={()=> tempFn(s+p, boardArray2[s+p])} >
-        {boardArray2[s +p] !==" " && <img key={s+p} draggable={false} src={'./images/new_images/'+str+boardArray2[s +p]+'.png'} className='z-10 select-none top-[-1rem] absolute drag pointer-events-none '/>} 
+        <div
+          key={s}
+          draggable={false}
+          className={
+            "flex-auto select-none relative z-20  m-[1px] " +
+            (possibleMoves.includes(s + p) && "bg-[#6f69]")
+          }
+          onClick={() => tempFn(s + p, boardArray2[s + p])}
+        >
+          {boardArray2[s + p] !== " " && (
+            <img
+              key={s + p}
+              draggable={false}
+              src={"./images/new_images/" + str + boardArray2[s + p] + ".png"}
+              className="z-10 select-none top-[-1rem] absolute drag pointer-events-none "
+            />
+          )}
+        </div>
+      );
+    });
+    return (
+      <div key={p} className="flex h-[12.5%] relative flex-auto w-full ">
+        {Y}
       </div>
-      )
-    })
-  return ( 
-       <div key={p} className='flex h-[12.5%] relative flex-auto w-full '>{Y}</div>
-    )
-  } )
-  return (
-    <>{X}</>
-  )
-
-}
+    );
+  });
+  return <>{X}</>;
+};
 export default App;
