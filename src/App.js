@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Game } from "js-chess-engine";
 import "./App.css";
 import io from "socket.io-client";
@@ -15,10 +15,15 @@ function App() {
   const [counter, setCounter] = useState(0);
   const [counter2, setCounter2] = useState(0);
   const sendMessage = async () => {
+    // await delay(1000);
+    const currBoardArray=await boardArray2;
+    console.log("Send message array")
+    console.log(currBoardArray);
+    // await delay(1000);
     const data = {
       room: room,
       game: await game,
-      boardArray2: await boardArray2
+      boardArray2: currBoardArray
     };
     await socket.emit("send_message", data);
   };
@@ -32,8 +37,9 @@ function App() {
       socket.emit("join_room", room);
     }
   };
+  const forceUpdate = useCallback((boardArray) => setBoardArray2({ ...boardArray }), []);
 
-  let keys = Object.keys(boardArray2);
+  // let keys = Object.keys(boardArray2);
   let board =  game.exportJson().pieces;
 
   async function setCurrBoard() {
@@ -61,7 +67,7 @@ function App() {
 
     for (let i = 1; i <= 8; i++) {
       board = await game.exportJson().pieces;
-      console.log(board)
+      // console.log(board)
       for (let j = 1; j <= 8; j++) {
         let piece = board[xaxis[i] + yaxis[j]];
         if (piece) {
@@ -71,17 +77,28 @@ function App() {
         }
       }
     }
-    await setBoardArray2(await { ...boardArray });
+    // await setBoardArray2(await { ...boardArray });
+    await forceUpdate(boardArray);
 
-    keys = await Object.keys(boardArray2);
+    // keys = await Object.keys(boardArray2);
+    // await delay(500);
   }
 
   const [possibleMoves, setPossibleMoves] = useState([]);
   const [fromPosition, setfromPosition] = useState("");
 
+  function delay(time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+  }
+
   const tempFn = async (x, y) => {
     if (possibleMoves.length > 0 && possibleMoves.includes(x)) {
       game.move(fromPosition, x);
+      boardArray2[x] = boardArray2[fromPosition];
+      boardArray2[fromPosition] = " ";
+
+      await setCurrBoard();
+      // await delay(500);
       await setCurrBoard();
       setfromPosition("");
       // game.aiMove(difficulty);
@@ -97,33 +114,47 @@ function App() {
     }
     setCounter(counter + 1);
     setCounter2(counter2 + 1);
+    await setCurrBoard();
 
   };
 
   useEffect(() => {
+    // delay(500);
     joinRoom();
     setCurrBoard();
   }, []);
 
   useEffect(() => {
+
     async function temp() {
       await setCurrBoard();
     }
     temp();
+    // delay(500);
+
   }, [counter2]);
 
   useEffect( () => {
+
     async function temp(){
-      await sendMessage();
       await setCurrBoard();
+      // delay(500);
+      await sendMessage();
     }
     temp();
+    // delay(500);
+
   }, [counter]);
 
   useEffect(() => {
+
     socket.on("receive_board", async (data) => {
       setGame(await new Game(data.game.board.configuration));
+      setBoardArray2(await data.boardArray2);
       setCounter2(counter2 + 1);
+      console.log("Received message");
+      console.log(data);
+      console.log(boardArray2);
     });
   }, [socket]);
 
