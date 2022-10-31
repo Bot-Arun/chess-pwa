@@ -5,7 +5,7 @@ import io from "socket.io-client";
 
 // const game1 = new Game();
 
-const socket = io("https://online-chess-back-end.herokuapp.com/");
+const socket = io("http://localhost:3001/");
 
 function App() {
   const [game, setGame] = useState(new Game());
@@ -15,22 +15,16 @@ function App() {
   const [counter, setCounter] = useState(0);
   const [counter2, setCounter2] = useState(0);
   const sendMessage = async () => {
-    // await delay(1000);
-    const currBoardArray=await boardArray2;
+    const currBoardArray=boardArray2;
     console.log("Send message array")
     console.log(currBoardArray);
-    // await delay(1000);
     const data = {
       room: room,
       game: await game,
       boardArray2: currBoardArray
     };
-    await socket.emit("send_message", data);
+    socket.emit("send_message", data);
   };
-
-  // useEffect(() => {
-  //   sendMessage();
-  // },[boardArray2])
 
   const joinRoom = () => {
     if (room !== "") {
@@ -77,19 +71,11 @@ function App() {
         }
       }
     }
-    // await setBoardArray2(await { ...boardArray });
-    await forceUpdate(boardArray);
-
-    // keys = await Object.keys(boardArray2);
-    // await delay(500);
+    forceUpdate(boardArray);
   }
 
   const [possibleMoves, setPossibleMoves] = useState([]);
   const [fromPosition, setfromPosition] = useState("");
-
-  function delay(time) {
-    return new Promise((resolve) => setTimeout(resolve, time));
-  }
 
   const tempFn = async (x, y) => {
     if (possibleMoves.length > 0 && possibleMoves.includes(x)) {
@@ -97,9 +83,7 @@ function App() {
       boardArray2[x] = boardArray2[fromPosition];
       boardArray2[fromPosition] = " ";
 
-      await setCurrBoard();
-      // await delay(500);
-      await setCurrBoard();
+      // await setCurrBoard();
       setfromPosition("");
       // game.aiMove(difficulty);
       // sendMessage(boardArray2);
@@ -113,15 +97,13 @@ function App() {
       setfromPosition(x);
     }
     setCounter(counter + 1);
-    setCounter2(counter2 + 1);
-    await setCurrBoard();
-
+    // setCounter2(counter2 + 1);
+    // await setCurrBoard();
   };
 
   useEffect(() => {
-    // delay(500);
     joinRoom();
-    setCurrBoard();
+    // setCurrBoard();
   }, []);
 
   useEffect(() => {
@@ -138,11 +120,9 @@ function App() {
 
     async function temp(){
       await setCurrBoard();
-      // delay(500);
       await sendMessage();
     }
     temp();
-    // delay(500);
 
   }, [counter]);
 
